@@ -1,0 +1,14 @@
+{
+    "name": "aiva-monorepo",
+    "private": true,
+    "version": "1.0.0",
+    "description": "AIVA — Autonomous Agile Virtual Assistant (Monorepo)",
+    "scripts": {
+        "dev:client": "cd client && npm run dev",
+        "dev:server": "cd server && npm run dev",
+        "dev": "start cmd /c \"cd server && npm run dev\" && cd client && npm run dev",
+        "install:all": "cd client && npm install && cd ../server && npm install",
+        "build:client": "cd client && npm run build",
+        "build:server": "cd server && npm run build"
+    }
+}

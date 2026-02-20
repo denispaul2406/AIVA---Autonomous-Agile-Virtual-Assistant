@@ -1,0 +1,5 @@
+{
+  "name": "AIVA - AI Sequential Scrum Master",
+  "description": "A premium, dark-mode Sequential Multi-Agent System (MAS) that automates the SDLC from raw requirements to blocker resolution using Google Gemini.",
+  "requestFramePermissions": []
+}

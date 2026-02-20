@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment files (contain secrets)
+.env
+.env.local
+client/.env.local
+server/.env
+
+# Build output
+dist/
+client/dist/
+server/dist/
+
+# Service account keys (NEVER commit these)
+*-service-account*.json
+aiva-project-*.json
+emerald-handler-*.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Extracted text
+AIVA_prd_text.txt
