@@ -16,7 +16,12 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: [
+        process.env.CLIENT_URL || '',
+        'https://aiva-agile.netlify.app',
+        'http://localhost:3000',
+        'http://localhost:5173'
+    ].filter(Boolean),
     credentials: true,
 }));
 app.use(express.json());
