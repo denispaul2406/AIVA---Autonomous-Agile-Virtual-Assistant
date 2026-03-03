@@ -63,6 +63,26 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 app.listen(PORT, () => {
     console.log(`\n🚀 AIVA Server running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health\n`);
+
+    // ─── Keep-Alive: Prevent Render free tier from sleeping ───
+    // Set KEEP_ALIVE=true and RENDER_EXTERNAL_URL in your Render env vars
+    if (process.env.KEEP_ALIVE === 'true') {
+        const INTERVAL = 4 * 60 * 1000; // 4 minutes
+        const url = process.env.RENDER_EXTERNAL_URL
+            ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
+            : `http://localhost:${PORT}/api/health`;
+
+        setInterval(async () => {
+            try {
+                const res = await fetch(url);
+                console.log(`[Keep-Alive] Pinged ${url} — ${res.status}`);
+            } catch (err) {
+                console.warn('[Keep-Alive] Ping failed:', (err as Error).message);
+            }
+        }, INTERVAL);
+
+        console.log(`🔄 Keep-alive enabled: pinging every ${INTERVAL / 1000}s → ${url}`);
+    }
 });
 
 export default app;

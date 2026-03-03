@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import LoginPage from './components/LoginPage';
-import { AgentStatus } from './types';
+import LandingPage from './components/LandingPage';
+
+type AppView = 'landing' | 'login' | 'register';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const [view, setView] = useState<AppView>('landing');
 
   if (loading) {
     return (
@@ -19,11 +21,24 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return <LoginPage />;
+  if (user) {
+    return <Dashboard />;
   }
 
-  return <Dashboard />;
+  if (view === 'landing') {
+    return (
+      <LandingPage
+        onGetStarted={(mode) => setView(mode)}
+      />
+    );
+  }
+
+  return (
+    <LoginPage
+      initialMode={view === 'register' ? 'register' : 'login'}
+      onBack={() => setView('landing')}
+    />
+  );
 };
 
 const App: React.FC = () => {
@@ -35,3 +50,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

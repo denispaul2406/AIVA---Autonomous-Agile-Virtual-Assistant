@@ -159,3 +159,6 @@ export const setUserRole = (targetUid: string, role: string) =>
 
 export const getUsers = () =>
     apiRequest('/api/users');
+
+export const getMyProfile = () =>
+    apiRequest('/api/users/me');

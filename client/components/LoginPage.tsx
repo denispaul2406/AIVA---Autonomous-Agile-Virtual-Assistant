@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, LogIn, UserPlus, Mail, Lock, User, Shield, Code, TestTube } from 'lucide-react';
+import { Bot, LogIn, UserPlus, Mail, Lock, User, Shield, Code, TestTube, ArrowLeft } from 'lucide-react';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 
-const LoginPage: React.FC = () => {
+interface LoginPageProps {
+    initialMode?: 'login' | 'register';
+    onBack?: () => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ initialMode = 'login', onBack }) => {
     const { login, register, error } = useAuth();
-    const [isRegister, setIsRegister] = useState(false);
+    const [isRegister, setIsRegister] = useState(initialMode === 'register');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState('');
@@ -50,6 +55,17 @@ const LoginPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="relative z-10 w-full max-w-md"
             >
+                {/* Back to Landing */}
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="absolute top-6 left-6 flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors z-20"
+                    >
+                        <ArrowLeft size={16} />
+                        Back
+                    </button>
+                )}
+
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30 mx-auto mb-4">
@@ -130,8 +146,8 @@ const LoginPage: React.FC = () => {
                                             type="button"
                                             onClick={() => setSelectedRole(role.value)}
                                             className={`p-3 rounded-lg border text-center transition-all ${selectedRole === role.value
-                                                    ? 'border-primary bg-primary/10 text-primary'
-                                                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
+                                                ? 'border-primary bg-primary/10 text-primary'
+                                                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
                                                 }`}
                                         >
                                             <div className="flex justify-center mb-1">{role.icon}</div>

@@ -31,4 +31,26 @@ router.get('/', verifyAuth, async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * GET /api/users/me
+ * Get the currently authenticated user's profile (role, email, displayName).
+ */
+router.get('/me', verifyAuth, async (req: Request, res: Response) => {
+    try {
+        const uid = req.user!.uid;
+        const userDoc = await db.collection('users').doc(uid).get();
+        const data = userDoc.exists ? userDoc.data() : {};
+
+        res.json({
+            uid,
+            email: data?.email || req.user!.email,
+            displayName: data?.displayName || '',
+            role: data?.role || 'developer',
+        });
+    } catch (error: any) {
+        console.error('Get current user error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

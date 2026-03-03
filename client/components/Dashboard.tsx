@@ -64,6 +64,9 @@ const Dashboard: React.FC = () => {
   const [showNewProject, setShowNewProject] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
 
+  // All users (for team resolution)
+  const [allUsers, setAllUsers] = useState<{ uid: string; displayName: string; role: string }[]>([]);
+
   // Agent data
   const [rawRequirements, setRawRequirements] = useState('');
   const [srs, setSrs] = useState<SRS | null>(null);
@@ -78,10 +81,27 @@ const Dashboard: React.FC = () => {
     scrumMaster: AgentStatus.IDLE,
   });
 
-  // Load projects on mount
+  // Load projects and users on mount
   useEffect(() => {
     loadProjects();
+    loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      const data = await api.getUsers();
+      setAllUsers(data.users || []);
+    } catch (err) {
+      console.error('Failed to load users:', err);
+    }
+  };
+
+  // Compute team members for the current project
+  const currentProject = projects.find(p => p.id === currentProjectId);
+  const projectTeamMembers = (currentProject?.teamMembers || []).map((uid: string) => {
+    const u = allUsers.find(u => u.uid === uid);
+    return u || { uid, displayName: uid.substring(0, 8), role: 'developer' };
+  });
 
   const loadProjects = async () => {
     try {
@@ -830,7 +850,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <Layout activeAgent={activeAgent}>
+    <Layout activeAgent={activeAgent} teamMembers={projectTeamMembers}>
       <div className="space-y-8 pb-20">
         {renderProjectBar()}
         {renderNewProjectModal()}

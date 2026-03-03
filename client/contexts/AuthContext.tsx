@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (fbUser) {
                 setFirebaseUser(fbUser);
 
-                // Try to get role from localStorage cache or default
+                // Use cached role as optimistic initial value
                 const cachedRole = localStorage.getItem(`aiva_role_${fbUser.uid}`) as UserRole;
 
                 setUser({
@@ -62,6 +62,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     displayName: fbUser.displayName || '',
                     role: cachedRole || 'developer',
                 });
+
+                // Fetch the real role from the backend and update
+                try {
+                    const profile = await api.getMyProfile();
+                    const backendRole = (profile.role as UserRole) || 'developer';
+                    localStorage.setItem(`aiva_role_${fbUser.uid}`, backendRole);
+                    setUser({
+                        uid: fbUser.uid,
+                        email: fbUser.email || '',
+                        displayName: fbUser.displayName || profile.displayName || '',
+                        role: backendRole,
+                    });
+                } catch (err) {
+                    console.warn('Failed to fetch role from backend, using cached role:', err);
+                }
             } else {
                 setFirebaseUser(null);
                 setUser(null);

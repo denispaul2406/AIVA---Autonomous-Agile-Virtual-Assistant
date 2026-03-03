@@ -16,6 +16,7 @@ server/dist/
 *-service-account*.json
 aiva-project-*.json
 emerald-handler-*.json
+*-firebase-adminsdk-*.json
 
 # IDE
 .vscode/
@@ -27,3 +28,13 @@ Thumbs.db
 
 # Extracted text
 AIVA_prd_text.txt
+
+# Agent tooling
+.gemini/
+_agents/
+.agents/
+metadata.json
+
+# Logs
+*.log
+npm-debug.log*
