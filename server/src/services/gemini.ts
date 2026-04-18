@@ -8,8 +8,8 @@ const getAI = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
  * we fall through to the next one.
  */
 const MODEL_CASCADE = [
+  'gemini-flash-latest',
   'gemini-2.0-flash',
-  'gemini-1.5-flash',
   'gemini-2.0-flash-lite',
 ];
 
@@ -25,8 +25,9 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  *
  * Returns the raw text response from the first successful call.
  */
-const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 2000; // 2s, 4s, 8s
+const MAX_RETRIES = 2;
+const BASE_DELAY_MS = 2000; // 2s, 4s
+const MAX_RETRY_DELAY_MS = 15000; // Cap Google-requested delays at 15s so quota failures fail fast
 
 interface GenerateOptions {
   prompt: string;
@@ -65,6 +66,11 @@ const generateWithRetry = async ({ prompt, json }: GenerateOptions): Promise<str
         const retryMatch = error.message?.match(/retry in (\d+(?:\.\d+)?)s/i);
         if (retryMatch) {
           retryDelay = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 1000; // Add 1s buffer
+        }
+        // Cap delay — if Google asks for >15s, it's a daily quota, not a burst limit.
+        // Waiting that long just to fail again wastes the user's time.
+        if (retryDelay > MAX_RETRY_DELAY_MS) {
+          retryDelay = MAX_RETRY_DELAY_MS;
         }
 
         const errorMsg = `${model}@attempt${attempt}: ${error.message?.substring(0, 100)}`;

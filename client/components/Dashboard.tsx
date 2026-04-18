@@ -833,18 +833,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-panel rounded-xl p-5">
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Team</h4>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
-                {user?.displayName?.charAt(0) || 'U'}
-              </div>
-              <span className="text-xs text-gray-300">{user?.displayName}</span>
-              <span className="text-[10px] text-gray-600 capitalize ml-auto">{user?.role?.replace('_', ' ')}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
