@@ -82,8 +82,17 @@ router.post('/schedule-meeting', verifyAuth, requireRole(UserRole.TEAM_LEAD), as
         let meetLink = '';
         let calendarEventId = '';
 
-        // Create Google Calendar event (if configured)
-        if (process.env.GOOGLE_CALENDAR_CLIENT_EMAIL && process.env.GOOGLE_CALENDAR_PRIVATE_KEY) {
+        // Create Google Calendar event if either OAuth OR service account creds are configured.
+        const hasOAuthCreds = !!(
+            process.env.GOOGLE_OAUTH_CLIENT_ID &&
+            process.env.GOOGLE_OAUTH_CLIENT_SECRET &&
+            process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+        );
+        const hasServiceAccountCreds = !!(
+            process.env.GOOGLE_CALENDAR_CLIENT_EMAIL && process.env.GOOGLE_CALENDAR_PRIVATE_KEY
+        );
+
+        if (hasOAuthCreds || hasServiceAccountCreds) {
             try {
                 const calResult = await calendar.createCalendarEvent({
                     title: meetingPlan.title,

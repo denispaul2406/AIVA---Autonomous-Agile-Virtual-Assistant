@@ -3,18 +3,50 @@ import { google } from 'googleapis';
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
 /**
- * Create an authenticated Google Calendar client using the service account.
+ * Create an authenticated Google Calendar client.
+ *
+ * Preferred: OAuth 2.0 with a refresh token. This creates the event as a real
+ * user, which is the ONLY way to get a working Google Meet link on a consumer
+ * (non-Workspace) Google account.
+ *
+ * Fallback: service account JWT. Service accounts can create calendar events
+ * but Google does NOT return a Meet link for consumer accounts.
  */
 const getCalendarClient = () => {
-    const auth = new google.auth.JWT(
+    if (
+        process.env.GOOGLE_OAUTH_CLIENT_ID &&
+        process.env.GOOGLE_OAUTH_CLIENT_SECRET &&
+        process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+    ) {
+        const oauth2 = new google.auth.OAuth2(
+            process.env.GOOGLE_OAUTH_CLIENT_ID,
+            process.env.GOOGLE_OAUTH_CLIENT_SECRET
+        );
+        oauth2.setCredentials({
+            refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN,
+        });
+        return google.calendar({ version: 'v3', auth: oauth2 });
+    }
+
+    const jwt = new google.auth.JWT(
         process.env.GOOGLE_CALENDAR_CLIENT_EMAIL,
         undefined,
         process.env.GOOGLE_CALENDAR_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         SCOPES
     );
-
-    return google.calendar({ version: 'v3', auth });
+    return google.calendar({ version: 'v3', auth: jwt });
 };
+
+/**
+ * True if OAuth credentials (with refresh token) are configured.
+ * When true, we are authenticating as a real user and can request a Meet link.
+ */
+const isUsingOAuth = (): boolean =>
+    !!(
+        process.env.GOOGLE_OAUTH_CLIENT_ID &&
+        process.env.GOOGLE_OAUTH_CLIENT_SECRET &&
+        process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+    );
 
 interface CreateMeetingParams {
     title: string;
@@ -62,6 +94,7 @@ export const createCalendarEvent = async (params: CreateMeetingParams): Promise<
         conferenceData: {
             createRequest: {
                 requestId: `aiva-meet-${Date.now()}`,
+                conferenceSolutionKey: { type: 'hangoutsMeet' },
             },
         },
         reminders: {
@@ -82,8 +115,13 @@ export const createCalendarEvent = async (params: CreateMeetingParams): Promise<
             sendUpdates: 'all',
         });
     } catch (error: any) {
-        // If service account cannot invite attendees, retry without them
-        if (error.errors && error.errors[0]?.reason === 'forbiddenForServiceAccounts') {
+        // If service account cannot invite attendees, retry without them.
+        // (Not applicable when using OAuth — a real user can invite attendees.)
+        if (
+            !isUsingOAuth() &&
+            error.errors &&
+            error.errors[0]?.reason === 'forbiddenForServiceAccounts'
+        ) {
             console.warn('Calendar: Service account cannot invite attendees. Retrying without guest list...');
             const retryEvent = { ...event };
             delete (retryEvent as any).attendees;

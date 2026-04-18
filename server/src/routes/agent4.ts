@@ -109,7 +109,16 @@ router.post('/escalate-blocker', verifyAuth, requireRole(UserRole.TEAM_LEAD), as
         const teamEmails = (process.env.TEAM_MEMBER_EMAILS || '').split(',').filter(Boolean);
         let meetLink = '';
 
-        if (process.env.GOOGLE_CALENDAR_CLIENT_EMAIL && process.env.GOOGLE_CALENDAR_PRIVATE_KEY && teamEmails.length > 0) {
+        const hasOAuthCreds = !!(
+            process.env.GOOGLE_OAUTH_CLIENT_ID &&
+            process.env.GOOGLE_OAUTH_CLIENT_SECRET &&
+            process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+        );
+        const hasServiceAccountCreds = !!(
+            process.env.GOOGLE_CALENDAR_CLIENT_EMAIL && process.env.GOOGLE_CALENDAR_PRIVATE_KEY
+        );
+
+        if ((hasOAuthCreds || hasServiceAccountCreds) && teamEmails.length > 0) {
             try {
                 const blockerDoc = await db.collection('projects').doc(projectId).collection('blockers').doc(blockerId).get();
                 const blockerDesc = blockerDoc.data()?.description || 'Blocker escalation';

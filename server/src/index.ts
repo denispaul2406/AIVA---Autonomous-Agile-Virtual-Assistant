@@ -40,7 +40,10 @@ app.get('/api/health', (_req, res) => {
         services: {
             gemini: !!process.env.GEMINI_API_KEY,
             firebase: !!process.env.FIREBASE_PROJECT_ID,
-            googleCalendar: !!process.env.GOOGLE_CALENDAR_CLIENT_EMAIL,
+            googleCalendar:
+                !!(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_REFRESH_TOKEN) ||
+                !!process.env.GOOGLE_CALENDAR_CLIENT_EMAIL,
+            googleMeet: !!(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_REFRESH_TOKEN),
             slack: !!process.env.SLACK_BOT_TOKEN,
         },
     });
